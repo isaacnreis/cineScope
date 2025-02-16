@@ -1,0 +1,57 @@
+@import "../../styles/variables";
+
+.favorites {
+  padding: 2rem;
+  text-align: center;
+  color: #fff;
+
+  h1 {
+    color: $color-light;
+    margin-bottom: 1rem;
+  }
+
+  .movieGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+  }
+
+  .movieCard {
+    background-color: $color-primary;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+
+    img {
+      width: 100%;
+      height: auto;
+    }
+
+    h2 {
+      color: $color-light;
+      margin: 0.5rem 0;
+    }
+
+    p {
+      margin: 0.3rem 0;
+    }
+
+    .removeBtn {
+      background-color: $color-accent;
+      border: none;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: $color-light;
+      }
+    }
+  }
+}
