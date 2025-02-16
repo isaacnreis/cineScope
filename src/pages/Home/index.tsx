@@ -13,7 +13,7 @@ interface Movie {
 }
 
 const Home = () => {
-  const { state } = useMovieContext();
+  const { state, toggleFavorite } = useMovieContext();
   const [filteredMovies, setFilteredMovies] = useState<Movie[]>([]);
 
   useEffect(() => {
@@ -40,7 +40,10 @@ const Home = () => {
               <h2>{movie.title}</h2>
               <p>Diretor: {movie.director}</p>
               <p>Atores: {movie.mainActors.join(", ")}</p>
-              <button className={styles.favoriteBtn}>
+              <button
+                className={styles.favoriteBtn}
+                onClick={() => toggleFavorite(movie.id)}
+              >
                 {movie.isFavorite ? "Remover dos Favoritos" : "Favoritar"}
               </button>
             </div>

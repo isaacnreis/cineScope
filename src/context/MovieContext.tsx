@@ -1,4 +1,10 @@
-import React, { createContext, ReactNode, useContext, useReducer } from "react";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useReducer,
+} from "react";
 
 // Tipagem do filme
 export interface Movie {
@@ -56,14 +62,43 @@ const movieReducer = (state: State, action: Action): State => {
 const MovieContext = createContext<{
   state: State;
   dispatch: React.Dispatch<Action>;
-}>({ state: initialState, dispatch: () => null });
+  toggleFavorite: (movieId: string) => void;
+}>({ state: initialState, dispatch: () => null, toggleFavorite: () => null });
 
 // Provedor do context
 export const MovieProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(movieReducer, initialState);
 
+  // Função para alternar o favorito de um filme
+  const toggleFavorite = (movieId: string) => {
+    dispatch({ type: "TOGGLE_FAVORITES", payload: movieId });
+  };
+
+  // Sincroniza com o localStorage sempre que os filmes mudam
+  useEffect(() => {
+    const favoriteMovies = state.movies
+      .filter((movie) => movie.isFavorite)
+      .map((movie) => movie.id);
+
+    localStorage.setItem("favoriteMovies", JSON.stringify(favoriteMovies));
+  }, [state.movies]);
+
+  // Recupera favoritos do localStorage na inicialização
+  useEffect(() => {
+    const savedFavorites = JSON.parse(
+      localStorage.getItem("favoriteMovies") || "[]"
+    );
+    if (savedFavorites.length > 0) {
+      const updatedMovies = state.movies.map((movie) => ({
+        ...movie,
+        isFavorite: savedFavorites.includes(movie.id),
+      }));
+      dispatch({ type: "SET_MOVIES", payload: updatedMovies });
+    }
+  }, []);
+
   return (
-    <MovieContext.Provider value={{ state, dispatch }}>
+    <MovieContext.Provider value={{ state, dispatch, toggleFavorite }}>
       {children}
     </MovieContext.Provider>
   );
