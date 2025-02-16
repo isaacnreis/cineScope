@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useReducer,
 } from "react";
+import { getMovies } from "../services/tmdbApi.ts";
 
 // Tipagem do filme
 export interface Movie {
@@ -96,6 +97,27 @@ export const MovieProvider = ({ children }: { children: ReactNode }) => {
       dispatch({ type: "SET_MOVIES", payload: updatedMovies });
     }
   }, []);
+
+  useEffect(() => {
+    const fetchMovies = async () => {
+      const movies = await getMovies(state.searchQuery);
+      console.log(movies);
+      const formattedMovies = movies.map((movie: any) => ({
+        id: movie.id,
+        title: movie.title,
+        director: "Desconhecido",
+        mainActors: [],
+        keywords: movie.genre_ids || [],
+        posterUrl: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+        isFavorite: false,
+      }));
+      dispatch({ type: "SET_MOVIES", payload: formattedMovies });
+    };
+
+    if (state.searchQuery) {
+      fetchMovies();
+    }
+  }, [state.searchQuery]);
 
   return (
     <MovieContext.Provider value={{ state, dispatch, toggleFavorite }}>
