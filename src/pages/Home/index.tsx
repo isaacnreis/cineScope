@@ -1,3 +1,4 @@
+import PagingController from "../../components/PagingController";
 import { useMovieContext } from "../../context/MovieContext.tsx";
 import styles from "./Home.module.scss";
 import { useEffect, useState } from "react";
@@ -52,6 +53,7 @@ const Home = () => {
           <p>Nenhum filme encontrado.</p>
         )}
       </div>
+      <PagingController />
     </main>
   );
 };

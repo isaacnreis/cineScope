@@ -6,6 +6,7 @@ import React, {
   useReducer,
 } from "react";
 import { getMovies } from "../services/tmdbApi.ts";
+import { toggleFavorite } from "./movieHelpers.ts";
 
 // Tipagem do filme
 export interface Movie {
@@ -23,19 +24,25 @@ interface State {
   movies: Movie[];
   favorites: Movie[];
   searchQuery: string;
+  currentPage: number;
+  totalPages: number;
 }
 
 // Ações possíveis no reducer
 type Action =
   | { type: "SET_MOVIES"; payload: Movie[] }
   | { type: "TOGGLE_FAVORITES"; payload: string }
-  | { type: "SET_SEARCH_QUERY"; payload: string };
+  | { type: "SET_SEARCH_QUERY"; payload: string }
+  | { type: "SET_PAGE"; payload: number }
+  | { type: "SET_TOTAL_PAGES"; payload: number };
 
 // Estado inicial
 const initialState: State = {
   movies: [],
   favorites: [],
   searchQuery: "",
+  currentPage: 1,
+  totalPages: 1,
 };
 
 // Função reducer
@@ -44,16 +51,18 @@ const movieReducer = (state: State, action: Action): State => {
     case "SET_MOVIES":
       return { ...state, movies: action.payload };
     case "TOGGLE_FAVORITES": {
-      const updateMovies = state.movies.map((movie) =>
-        movie.id === action.payload
-          ? { ...movie, isFavorite: !movie.isFavorite }
-          : movie
+      const updatedMovies = toggleFavorite(state.movies, action.payload);
+      const updatedFavorites = updatedMovies.filter(
+        (movie) => movie.isFavorite
       );
-      const updateFavorites = updateMovies.filter((movie) => movie.isFavorite);
-      return { ...state, movies: updateMovies, favorites: updateFavorites };
+      return { ...state, movies: updatedMovies, favorites: updatedFavorites };
     }
     case "SET_SEARCH_QUERY":
       return { ...state, searchQuery: action.payload };
+    case "SET_PAGE":
+      return { ...state, currentPage: action.payload };
+    case "SET_TOTAL_PAGES":
+      return { ...state, totalPages: action.payload };
     default:
       return state;
   }
@@ -73,6 +82,21 @@ export const MovieProvider = ({ children }: { children: ReactNode }) => {
   // Função para alternar o favorito de um filme
   const toggleFavorite = (movieId: string) => {
     dispatch({ type: "TOGGLE_FAVORITES", payload: movieId });
+  };
+
+  const fetchMovies = async (searchQuery: string, page: number) => {
+    const { movies, totalPages } = await getMovies(searchQuery, page);
+    const formattedMovies = movies.map((movie: any) => ({
+      id: movie.id,
+      title: movie.title,
+      director: movie.director,
+      mainActors: movie.mainActors,
+      keywords: movie.keywords,
+      posterUrl: movie.posterUrl,
+      isFavorite: false,
+    }));
+    dispatch({ type: "SET_MOVIES", payload: formattedMovies });
+    dispatch({ type: "SET_TOTAL_PAGES", payload: totalPages });
   };
 
   // Sincroniza com o localStorage sempre que os filmes mudam
@@ -96,28 +120,18 @@ export const MovieProvider = ({ children }: { children: ReactNode }) => {
       }));
       dispatch({ type: "SET_MOVIES", payload: updatedMovies });
     }
+
+    // Chama a função para carregar os filmes na inicialização
+    fetchMovies("a", 1);
   }, []);
 
   useEffect(() => {
-    const fetchMovies = async () => {
-      const movies = await getMovies(state.searchQuery);
-      console.log(movies);
-      const formattedMovies = movies.map((movie: any) => ({
-        id: movie.id,
-        title: movie.title,
-        director: "Desconhecido",
-        mainActors: [],
-        keywords: movie.genre_ids || [],
-        posterUrl: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-        isFavorite: false,
-      }));
-      dispatch({ type: "SET_MOVIES", payload: formattedMovies });
-    };
-
     if (state.searchQuery) {
-      fetchMovies();
+      fetchMovies(state.searchQuery, state.currentPage);
+    } else {
+      fetchMovies("a", state.currentPage);
     }
-  }, [state.searchQuery]);
+  }, [state.searchQuery, state.currentPage]);
 
   return (
     <MovieContext.Provider value={{ state, dispatch, toggleFavorite }}>
