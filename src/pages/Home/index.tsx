@@ -1,3 +1,4 @@
+import Loading from "../../components/Loading";
 import PagingController from "../../components/PagingController";
 import { useMovieContext } from "../../context/MovieContext.tsx";
 import styles from "./Home.module.scss";
@@ -33,27 +34,35 @@ const Home = () => {
   return (
     <main className={styles.home}>
       <h1>Catálogo de Filmes</h1>
-      <div className={styles.movieGrid}>
-        {filteredMovies.length > 0 ? (
-          filteredMovies.map((movie) => (
-            <div key={movie.id} className={styles.movieCard}>
-              <img src={movie.posterUrl} alt={movie.title} />
-              <h2>{movie.title}</h2>
-              <p>Diretor: {movie.director}</p>
-              <p>Atores: {movie.mainActors.join(", ")}</p>
-              <button
-                className={styles.favoriteBtn}
-                onClick={() => toggleFavorite(movie.id)}
-              >
-                {movie.isFavorite ? "Remover dos Favoritos" : "Favoritar"}
-              </button>
-            </div>
-          ))
+      <div>
+        {state.isLoading ? (
+          <Loading />
         ) : (
-          <p>Nenhum filme encontrado.</p>
+          <>
+            <div className={styles.movieGrid}>
+              {filteredMovies.length > 0 ? (
+                filteredMovies.map((movie) => (
+                  <div key={movie.id} className={styles.movieCard}>
+                    <img src={movie.posterUrl} alt={movie.title} />
+                    <h2>{movie.title}</h2>
+                    <p>Diretor: {movie.director}</p>
+                    <p>Atores: {movie.mainActors.join(", ")}</p>
+                    <button
+                      className={styles.favoriteBtn}
+                      onClick={() => toggleFavorite(movie.id)}
+                    >
+                      {movie.isFavorite ? "Remover dos Favoritos" : "Favoritar"}
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p>Nenhum filme encontrado.</p>
+              )}
+            </div>
+            <PagingController />
+          </>
         )}
       </div>
-      <PagingController />
     </main>
   );
 };

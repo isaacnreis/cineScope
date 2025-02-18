@@ -26,6 +26,7 @@ interface State {
   searchQuery: string;
   currentPage: number;
   totalPages: number;
+  isLoading: boolean;
 }
 
 // Ações possíveis no reducer
@@ -34,7 +35,8 @@ type Action =
   | { type: "TOGGLE_FAVORITES"; payload: string }
   | { type: "SET_SEARCH_QUERY"; payload: string }
   | { type: "SET_PAGE"; payload: number }
-  | { type: "SET_TOTAL_PAGES"; payload: number };
+  | { type: "SET_TOTAL_PAGES"; payload: number }
+  | { type: "SET_LOADING"; payload: boolean };
 
 // Estado inicial
 const initialState: State = {
@@ -43,13 +45,14 @@ const initialState: State = {
   searchQuery: "",
   currentPage: 1,
   totalPages: 1,
+  isLoading: false,
 };
 
 // Função reducer
 const movieReducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "SET_MOVIES":
-      return { ...state, movies: action.payload };
+      return { ...state, movies: action.payload, isLoading: false };
     case "TOGGLE_FAVORITES": {
       const updatedMovies = toggleFavorite(state.movies, action.payload);
       const updatedFavorites = updatedMovies.filter(
@@ -63,6 +66,8 @@ const movieReducer = (state: State, action: Action): State => {
       return { ...state, currentPage: action.payload };
     case "SET_TOTAL_PAGES":
       return { ...state, totalPages: action.payload };
+    case "SET_LOADING":
+      return { ...state, isLoading: action.payload };
     default:
       return state;
   }
@@ -85,6 +90,7 @@ export const MovieProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchMovies = async (searchQuery: string, page: number) => {
+    dispatch({ type: "SET_LOADING", payload: true });
     const { movies, totalPages } = await getMovies(searchQuery, page);
     const formattedMovies = movies.map((movie: any) => ({
       id: movie.id,
@@ -97,6 +103,7 @@ export const MovieProvider = ({ children }: { children: ReactNode }) => {
     }));
     dispatch({ type: "SET_MOVIES", payload: formattedMovies });
     dispatch({ type: "SET_TOTAL_PAGES", payload: totalPages });
+    dispatch({ type: "SET_LOADING", payload: false });
   };
 
   // Sincroniza com o localStorage sempre que os filmes mudam
