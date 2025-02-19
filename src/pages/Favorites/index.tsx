@@ -33,7 +33,7 @@ const Favorites = () => {
               <p>Diretor: {movie.director}</p>
               <p>Atores: {movie.mainActors.join(", ")}</p>
               <button
-                className={styles.removeBtn}
+                className={styles.favoriteBtn}
                 onClick={() => toggleFavorite(movie.id)}
               >
                 Remover dos Favoritos
